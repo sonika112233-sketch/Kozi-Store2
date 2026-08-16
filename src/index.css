@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+/* Kozi Store — cozy warm palette */
+@theme {
+  --color-cozy-cream: #faf3e8;
+  --color-cozy-beige: #efe1cf;
+  --color-cozy-tan: #d8b892;
+  --color-cozy-terracotta: #c1704a;
+  --color-cozy-terracotta-dark: #a85c39;
+  --color-cozy-brown: #5c4033;
+  --color-cozy-dark: #3b2a20;
+}
+
+body {
+  background-color: var(--color-cozy-cream);
+}

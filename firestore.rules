@@ -1,0 +1,47 @@
+// Firestore Security Rules for Kozi Store
+//
+// HOW TO APPLY THESE:
+// Firebase console -> Build -> Firestore Database -> Rules tab
+// -> paste this whole file, replacing what's there -> Publish.
+//
+// To make your first admin: sign up normally in the app, then in the
+// Firebase console open Firestore -> users -> your document -> change
+// the `role` field from "customer" to "admin" by hand.
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid) && request.resource.data.role == 'customer';
+      allow update: if isAdmin() ||
+        (isOwner(uid) && request.resource.data.role == resource.data.role);
+      allow delete: if isAdmin();
+    }
+
+    match /orders/{orderId} {
+      allow create: if
+        (isSignedIn() && request.resource.data.uid == request.auth.uid) ||
+        (!isSignedIn() && request.resource.data.uid == null);
+      allow read: if isSignedIn() &&
+        (resource.data.uid == request.auth.uid || isAdmin());
+      allow update, delete: if isAdmin();
+    }
+  }
+}
